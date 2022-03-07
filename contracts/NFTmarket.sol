@@ -29,7 +29,7 @@ contract NFTmarket is ReentrancyGuard {
         uint itemId;
         address nftContract;
         uint256 tokenId;
-        address payable seller;
+        address payable seller; //NFt seller.
         address payable owner;
         uint256 price;
         bool sold;
@@ -51,6 +51,7 @@ contract NFTmarket is ReentrancyGuard {
         
     );
     ///@notice function to get listing price 
+
     function getListingPrice() public view returns (uint256){
 
         return listingPrice;
@@ -58,6 +59,7 @@ contract NFTmarket is ReentrancyGuard {
 
 
     ///@notice function to create market item 
+
     function createMarketItem(address nftContract, uint256 tokenId, uint256 price )public payable nonReentrant{
      require (price>0,"price must be above zero");
      require(msg.value == listingPrice, "Price must be equal to listing price"); //if msg.value != listingPrice then return error "price must ..."
@@ -103,5 +105,24 @@ contract NFTmarket is ReentrancyGuard {
         uint tokenId = idMarketItem[itemId].tokenId;
 
         require(msg.value==price,"Please submit the asking price in order to complete purchase");
+        
+        //pay the Nft seller the  amount 
+        idMarketItem[itemId].seller.transfer(msg.value);
+        
+        //transfer ownership of the nft from the contract itself to the buyer.
+        IERC721(nftContract).TransferFrom(address(this),msg.sender,tokenId);
+
+        //making the new buyer as the new owner of the nft .
+        idMarketItem[itemId].owner = payable(msg.sender); //mark buyer as new owner 
+        idMarketItem[itemId].sold = true; 
+        _ItemsSold.increment(); //increment the total number of itemsold by 1 
+        payable(owner).transfer(listingPrice);// paying the marketplace commission.
+
     }
+
+
+    ///@notice total number of items unsold on our platform 
+    //function to read information we use view while pure does calculation.
+
+    function fetchMarketItems() public 
 }
