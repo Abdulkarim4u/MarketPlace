@@ -12,8 +12,8 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract NFTmarket is ReentrancyGuard {
 
     using Counters  for Counters.Counter;
-    Counters.Counter private _itemIds;
-    Counters.Counter private _ItemsSold; //total number of items sold 
+    Counters.Counter private _itemIds;    //total number Items ever created
+    Counters.Counter private _ItemsSold; //total  number of Items ever sold.
     address payable owner; //owner of the smart contract
 
     uint256 listingPrice = 0.025 ether; // people have to pay listing fee to buy an nft on this marketplace.
@@ -64,7 +64,7 @@ contract NFTmarket is ReentrancyGuard {
      require (price>0,"price must be above zero");
      require(msg.value == listingPrice, "Price must be equal to listing price"); //if msg.value != listingPrice then return error "price must ..."
      
-     _itemIds.increment();
+     _itemIds.increment(); //add 1 to the total number of items ever created.
      uint256 itemId = _itemIds.current();
 
      idMarketItem[itemId] = MarketItem(
@@ -122,7 +122,35 @@ contract NFTmarket is ReentrancyGuard {
 
 
     ///@notice total number of items unsold on our platform 
-    //function to read information we use view while pure does calculation.
 
-    function fetchMarketItems() public 
+    function fetchMarketItems() public view returns (MarketItem[] memory){
+
+        uint itemCount = _itemIds.current(); //total number of items ever created.
+
+        //total number of items that are unsold = total items ever created - total items ever  sold 
+        uint unsoldItemCount = _itemsIds.current() - _itemsold.current();
+       
+       uint currentIndex = 0;
+
+       MarketItem[] memory items = new MarketItem[](unsoldItemCount);
+
+       //loop through all items ever created 
+
+       for(uint i = 0; i <itemCount;i++){
+        //get only unsold item.
+        //check if the item has not been sold 
+        //by checking if the owner field is empty
+        if(idMarketItem[i+1].owner == address(0)){
+
+            //yes this item has never been sold 
+            uint currentId = idMarketItem[i+1].itemId;
+            MarketItem storage currentItem = idMarketItem[currentId];
+            items[currentIndex] = currentItem;
+            currentIndex += 1;
+
+        }
+       }
+
+       return items; //return array of all unsold items.
+    }
 }
