@@ -62,7 +62,7 @@ contract NFTmarket is ReentrancyGuard {
 
     function createMarketItem(address nftContract, uint256 tokenId, uint256 price )public payable nonReentrant{
      require (price>0,"price must be above zero");
-     require(msg.value == listingPrice, "Price must be equal to listing price"); //if msg.value != listingPrice then return error "price must ..."
+     require(msg.value == listingPrice, "Price   must be equal to listing price"); //if msg.value != listingPrice then return error "price must ..."
      
      _itemIds.increment(); //add 1 to the total number of items ever created.
      uint256 itemId = _itemIds.current();
@@ -101,7 +101,7 @@ contract NFTmarket is ReentrancyGuard {
 
     function createMarketSale(address nftContract,uint256 itemId)public payable nonReentrant{
 
-        uint price = idMarketItem[itemid].price;
+        uint price = idMarketItem[itemId].price;
         uint tokenId = idMarketItem[itemId].tokenId;
 
         require(msg.value==price,"Please submit the asking price in order to complete purchase");
@@ -153,4 +153,74 @@ contract NFTmarket is ReentrancyGuard {
 
        return items; //return array of all unsold items.
     }
+
+    ///@notice fetch list of NFTs bought  by this user. 
+    function fetchMyNFTs() public view  returns (MarketItem[] memory){
+        //get total number of items ever created
+        uint totalItemCount = _itemIds.current();
+        
+        uint itemCount = 0;
+        uint currentIndex = 0;
+
+
+        for(uint i=0; i<totalItemCount;i++){
+             //get only  the items that this user has bought/is the owner.
+            if(idMarketItem[i+1].owner == msg.sender){
+                itemCount +=1;   
+
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+
+        for(uint i = 0; i< totalItemCount;i++){
+
+            if(idMarketItem[i+1].owner == msg.sender){
+
+                uint currentId = idMarketItem[i+1].itemId;
+                MarketItem storage currentItem = idMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+        return items;
+
+    }
+
+
+    ///@notice fetch list of NFTs bought  by this user. 
+    function fetchItemsCreated() public view  returns (MarketItem[] memory){
+        //get total number of items ever created
+        uint totalItemCount = _itemIds.current();
+        
+        uint itemCount = 0;
+        uint currentIndex = 0;
+
+
+        for(uint i=0; i<totalItemCount;i++){
+             //get only  the items that this user has bought/is the owner.
+            if(idMarketItem[i+1].seller == msg.sender){
+                itemCount +=1;   
+
+            }
+        }
+
+        MarketItem[] memory items = new MarketItem[](itemCount);
+
+        for(uint i = 0; i< totalItemCount;i++){
+
+            if(idMarketItem[i+1].seller == msg.sender){
+
+                uint currentId = idMarketItem[i+1].itemId;
+                MarketItem storage currentItem = idMarketItem[currentId];
+                items[currentIndex] = currentItem;
+                currentIndex += 1;
+            }
+        }
+        return items;
+
+    }
+
+
+
 }
