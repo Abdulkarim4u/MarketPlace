@@ -1,5 +1,6 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
+const { experimentalAddHardhatNetworkMessageTraceHook } = require("hardhat/config");
 
 describe("NFTMarket", function () {
   it("Should create and execute market sales", async function () {
@@ -11,7 +12,7 @@ describe("NFTMarket", function () {
 
 
     const NFT = await ethers.getContractFactory("NFT");
-    const nft = await Market.deploy();
+    const nft = await NFT.deploy();
     await nft.deployed(); //deploy the NFT contract.
     const nftContractAddress = nft.address;
 
@@ -32,7 +33,17 @@ describe("NFTMarket", function () {
 
     await market.createMarketItem(nftContractAddress,2,auctionPrice,{value:listingPrice});
 
+   
+    const [_,buyerAddress] = await ethers.getSigners();
 
+
+    await market.connect(buyerAddress).createMarketSale(nftContractAddress,1,{value: auctionPrice});
+
+    //fetch market items 
+
+    const items = await market.fetchMarketItems();
+
+    console.log('items:', items);
     
 
     
